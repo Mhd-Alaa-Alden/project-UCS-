@@ -1,169 +1,68 @@
+// C++ program to implement Best First Search using priority
+// queue
+#include <bits/stdc++.h>
+using namespace std;
+typedef pair<int, int> pi;
 
-#include <iostream>
-#include <vector>
-#include <queue>
+vector<vector<pi> > graph;
 
-using std::vector;
-using std::priority_queue;
-using std::cout;
-using std::endl;
-
-struct Node
+// Function for adding edges to graph
+void addedge(int x, int y, int cost)
 {
-  char name_;
-  vector<Node*> connect_;
-  vector<int> cost_;
+	graph[x].push_back(make_pair(cost, y));
+	graph[y].push_back(make_pair(cost, x));
+}
 
-  Node(char name)
-  :name_(name), connect_(), cost_()
-  {}
-
-  void connectsTo(Node* destination, int cost)
-  {
-    connect_.push_back(destination);
-    cost_.push_back(cost);
-  }
-};
-
-struct Path
+// Function For Implementing Best First Search
+// Gives output path having lowest cost
+void best_first_search(int source, int target, int n)
 {
-  int cost_;
-  vector<Node*> path_;
+	vector<bool> visited(n, false);
+	// MIN HEAP priority queue
+	priority_queue<pi, vector<pi>, greater<pi> > pq;
+	// sorting in pq gets done by first value of pair
+	pq.push(make_pair(0, source));
+	int s = source;
+	visited[s] = true;
+	while (!pq.empty()) {
+		int x = pq.top().second;
+		// Displaying the path having lowest cost
+		cout << x << " ";
+		pq.pop();
+		if (x == target)
+			break;
 
-  Path()
-  :cost_(0), path_()
-  {}
+		for (int i = 0; i < graph[x].size(); i++) {
+			if (!visited[graph[x][i].second]) {
+				visited[graph[x][i].second] = true;
+				pq.push(make_pair(graph[x][i].first,graph[x][i].second));
+			}
+		}
+	}
+}
 
-  Path(const Path& rhs)
-  :cost_(rhs.cost_), path_()
-  {
-    vector<Node*>::const_iterator i;
-
-    for (i = rhs.path_.begin(); i != rhs.path_.end(); ++i)
-    {
-      path_.push_back(*i);
-    }
-  }
-
-  bool operator>(const Path& rhs) const
-  {
-    return cost_ > rhs.cost_;
-  }
-
-  void append(Node* node)
-  {
-    path_.push_back(node);
-  }
-};
-
-void UCS(Node* start, Node* goal);
-void displayPath(const Path& path);
-void displayFrontier(priority_queue<Path, vector<Path>,
-                     std::greater<Path>> frontier);
-
-
- // main function
+// Driver code to test above methods
 int main()
 {
-  // add NODE
-  Node* S = new Node('S');
-  Node* a = new Node('a');
-  Node* b = new Node('b');
-  Node* c = new Node('c');
-  Node* G = new Node('G');
+	// No. of Nodes
+	int v = 14;
+	graph.resize(v);
 
-  // COST
-  S->connectsTo(a, 1);
-  S->connectsTo(b, 4);
-  a->connectsTo(b, 3);
-  a->connectsTo(c, 6);
-  a->connectsTo(G, 7);
-  b->connectsTo(c, 8);
-  c->connectsTo(G, 10);
+	// The nodes shown in above example(by alphabets) are
+	// implemented using integers addedge(x,y,cost);
+	addedge(0, 1, 1);
+	addedge(0, 2, 4);
+	addedge(1, 2, 3);
+	addedge(1, 3, 6);
+	addedge(1, 4, 7);
+	addedge(2, 3, 8);
+	addedge(3, 4, 10);
 
-  //  START AND goal state
-  UCS(S, G);
-}
+	int source = 0;
+	int target = 4;
 
-void UCS(Node* start, Node* goal)
-{
-  int iter_number = 0;
-  Node* current_node;
-  priority_queue<Path, vector<Path>, std::greater<Path>> frontier;
+	// Function call
+	best_first_search(source, target, v);
 
-  Path root;
-  root.append(start);
-  root.cost_ = 0;
-  frontier.push(root);
-
-  cout << "Initialisation: ";
-  displayFrontier(frontier);
-  cout << endl;
-
-  vector<Node*>::iterator i;
-
-  while (!frontier.empty())
-  {
-    iter_number++;
-
-    Path current_path;
-    current_node = frontier.top().path_.back();
-    current_path = frontier.top();
-
-    cout << "Iteration " << iter_number << ": ";
-    displayFrontier(frontier);
-    cout << endl;
-
-    frontier.pop();
-
-    if (current_node == goal)
-    {
-      cout << endl << "Solution: ";
-      displayPath(current_path);
-      cout << " costs " << current_path.cost_ << endl;
-      return;
-    }
-    else
-    {
-      vector<int>::iterator cost_iter;
-      cost_iter = current_node->cost_.begin();
-
-      for (i = current_node->connect_.begin();
-           i != current_node->connect_.end(); ++i)
-      {
-        Path temp_path(current_path);
-        temp_path.append(*i);
-        temp_path.cost_ += *cost_iter;
-        cost_iter++;
-        frontier.push(temp_path);
-      }
-    }
-  }
-
-  cout << "Solution does not exist." << endl;
-}
-
-void displayPath(const Path& path)
-{
-  vector<Node*>::const_iterator i;
-
-  for (i = path.path_.begin(); i != path.path_.end(); ++i)
-      cout << (*i)->name_;
-}
-
-void displayFrontier(priority_queue<Path, vector<Path>,
-                     std::greater<Path>> frontier)
-{
-  cout << "[ {";
-
-  while (frontier.size() > 0)
-  {
-    displayPath(frontier.top());
-    frontier.pop();
-
-    if (frontier.size() > 0)
-      cout << "}, {";
-    else
-      cout << "} ]";
-  }
+	return 0;
 }
